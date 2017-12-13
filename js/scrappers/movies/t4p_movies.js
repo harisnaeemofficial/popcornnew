@@ -1,10 +1,10 @@
-fetcher.scrappers.anime_movies = function(genre, keywords, page, callback, fallback){
+fetcher.scrappers.t4p_movies = function(genre, keywords, page, callback,fallback){
 
 		if(genre=='all')
 			genre = !1;
-		var domain =  '//api-anime.apidomain.info';
+		var domain =  '//api.apidomain.info';
 		if(fallback) {
-			domain = '//apinc.anime.apidomain.info';
+			domain = '//apinc.apidomain.info';
 		}
 
 		var url = domain+'/list?sort=' + app.config.fetcher.sortBy + '&cb='+Math.random()+'&quality=720p,1080p,3d&page=' + ui.home.catalog.page;
@@ -28,7 +28,7 @@ fetcher.scrappers.anime_movies = function(genre, keywords, page, callback, fallb
 			timeout:9000,
 			error:function(){
 				if(!fallback) {
-					fetcher.scrappers.anime_movies(genre, keywords, page, callback, true);
+					fetcher.scrappers.t4p_movies(genre, keywords, page, callback, true);
 				} else {
 					callback(false)
 				}
@@ -40,7 +40,7 @@ fetcher.scrappers.anime_movies = function(genre, keywords, page, callback, fallb
 
 				if (data.error || typeof data.MovieList === 'undefined') {
 					if(!fallback) {
-						fetcher.scrappers.anime_movies(genre, keywords, page, callback, true);
+						fetcher.scrappers.t4p_movies(genre, keywords, page, callback, true);
 					} else {
 						callback(false)
 					}
@@ -65,27 +65,37 @@ fetcher.scrappers.anime_movies = function(genre, keywords, page, callback, fallb
 								title:      movie.title,
 								year:       movie.year ? movie.year : '&nbsp;',
 								runtime:    movie.runtime,
-								synopsis:   movie.description,
+								synopsis:   "",
 								voteAverage:parseFloat(movie.rating),
 
-								poster_small:	movie.poster_med,
-								poster_big:   	movie.poster_big,
+								poster_small:	movie.poster_med?movie.poster_med.replace('http:',''):movie.poster_med,
+								poster_big:   	movie.poster_big?movie.poster_big.replace('http:',''):movie.poster_big,
 
 								quality:    movie.items[0].quality,
 								torrent:    movie.items[0].torrent_url,
-								magnet :    movie.items[0].torrent_magnet,
+                        magnet :    movie.items[0].torrent_magnet,
 								torrents:   movie.items,
 								videos:     {},
 								seeders:    movie.torrent_seeds,
 								leechers:   movie.torrent_peers,
-								trailer:	movie.trailer ? 'http://www.youtube.com/embed/' + movie.trailer + '?autoplay=1': false,
+								trailer:	movie.trailer ? '//www.youtube.com/embed/' + movie.trailer + '?autoplay=1': false,
 								stars:		utils.movie.rateToStars(parseFloat(movie.rating)),
 
 								hasMetadata:false,
 								hasSubtitle:false
 							};
 
+                  if(movie.items_lang && movie.items_lang.length){
+                     movieModel.dubbing = {};
+                     movie.items_lang.forEach(function(torrent){
+                        if(!movieModel.dubbing[torrent.language])
+                           movieModel.dubbing[torrent.language] = [];
 
+                        movieModel.dubbing[torrent.language].push(torrent);
+
+                     });
+
+                  }
 
 							var stored = memory[movie.imdb];
 
