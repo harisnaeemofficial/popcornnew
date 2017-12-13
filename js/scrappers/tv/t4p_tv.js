@@ -1,14 +1,16 @@
-fetcher.scrappers.anime_tv = function(genre, keywords, page, callback, fallback){
+fetcher.scrappers.t4p_tv = function(genre, keywords, page, callback, fallback){
 
+	var domain =  '//api.apidomain.info';
+	if(fallback) {
+		domain = '//apinc.apidomain.info';
+	}
 
 
 		if(genre=='all')
 			genre = !1;
-	var domain =  '//api-anime.apidomain.info';
-	if(fallback) {
-		domain = '//apinc.anime.apidomain.info';
-	}
-	var url = domain+'/shows?cb='+Math.random()+'&sort=' + app.config.fetcher.sortBy + '&page=' + ui.home.catalog.page;
+
+
+		var url = ''+domain+'/shows?cb='+Math.random()+'&sort=' + app.config.fetcher.sortBy + '&page=' + ui.home.catalog.page;
 
         if (keywords) {
             url += '&keywords=' + keywords;
@@ -26,11 +28,11 @@ fetcher.scrappers.anime_tv = function(genre, keywords, page, callback, fallback)
 			url: url,
 			dataType:'json',
 			error:function(){
-				if(!fallback) {
-					fetcher.scrappers.anime_tv(genre, keywords, page, callback, true);
-				} else {
-					callback(false)
-				}
+			if(!fallback) {
+				fetcher.scrappers.t4p_tv(genre, keywords, page, callback, true);
+			} else {
+				callback(false)
+			}
 			},
 			success:function(data){
 
@@ -39,13 +41,12 @@ fetcher.scrappers.anime_tv = function(genre, keywords, page, callback, fallback)
 
 				if (data.error || typeof data.MovieList === 'undefined') {
 					if(!fallback) {
-						fetcher.scrappers.anime_tv(genre, keywords, page, callback, true);
+						fetcher.scrappers.t4p_tv(genre, keywords, page, callback, true);
 					} else {
 						callback(false)
 					}
 					return;
 				}
-
 
 				data.MovieList.forEach(function (movie){
 					// No imdb, no movie.
@@ -61,14 +62,15 @@ fetcher.scrappers.anime_tv = function(genre, keywords, page, callback, fallback)
 						title:      movie.title,
 						year:       movie.year ? movie.year : '&nbsp;',
 						runtime:    movie.runtime,
-						synopsis:   movie.description,
+						synopsis:   "",
 						imdb_rating: parseFloat(movie.rating),
 
-						poster_small:	movie.poster_med,
-						poster_big:		movie.poster_big,
+						poster_small:	movie.poster_med?movie.poster_med.replace('http:',''):movie.poster_med,
+						poster_big:   	movie.poster_big?movie.poster_big.replace('http:',''):movie.poster_big,
+
 						seeders:    movie.torrent_seeds,
 						leechers:   movie.torrent_peers,
-						trailer:	movie.trailer ? 'http://www.youtube.com/embed/' + movie.trailer + '?autoplay=1': false,
+						trailer:	movie.trailer ? '//www.youtube.com/embed/' + movie.trailer + '?autoplay=1': false,
 						stars:		utils.movie.rateToStars(parseFloat(movie.rating)),
 
 					};
